@@ -17,30 +17,30 @@ class Resource
     /**
      * @var array
      */
-    protected $ignoreOnCreate = array();
+    protected $ignoreOnCreate = [];
 
     /**
      * @var array
      */
-    protected $ignoreOnUpdate = array();
+    protected $ignoreOnUpdate = [];
 
     /**
      * @var array
      */
-    protected $ignoreIfZero = array();
+    protected $ignoreIfZero = [];
 
     /**
      * @var array
      */
-    protected $fieldMap = array();
+    protected $fieldMap = [];
 
     public function __construct($object = false)
     {
-        if (is_array($object)) {
-            $object = (isset($object[0])) ? $object[0] : false;
+        if (!empty($object) && is_array($object)) {
+            $object = (!empty($object[0])) ? $object[0] : false;
         }
         $this->fields = ($object) ? $object : new \stdClass;
-        $this->id = ($object && isset($object->id)) ? $object->id : 0;
+        $this->id     = ($object && isset($object->id)) ? $object->id : 0;
     }
 
     public function __get($field)
@@ -100,7 +100,7 @@ class Resource
             return true;
         }
 
-        if ($value === "" && strpos($field, "date") !== false) {
+        if ($value === '' && strpos($field, 'date') !== false) {
             return true;
         }
 
