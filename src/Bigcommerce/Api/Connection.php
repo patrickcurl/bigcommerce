@@ -11,10 +11,12 @@ class Connection
      * XML media type.
      */
     const MEDIA_TYPE_XML = 'application/xml';
+
     /**
      * JSON media type.
      */
     const MEDIA_TYPE_JSON = 'application/json';
+
     /**
      * Default urlencoded media type.
      */
@@ -28,12 +30,12 @@ class Connection
     /**
      * @var array Hash of HTTP request headers.
      */
-    private $headers = array();
+    private $headers = [];
 
     /**
      * @var array Hash of headers from HTTP response
      */
-    private $responseHeaders = array();
+    private $responseHeaders = [];
 
     /**
      * The status line of the response.
@@ -95,13 +97,13 @@ class Connection
             define('STDIN', fopen('php://stdin', 'r'));
         }
         $this->curl = curl_init();
-        curl_setopt($this->curl, CURLOPT_HEADERFUNCTION, array($this, 'parseHeader'));
-        curl_setopt($this->curl, CURLOPT_WRITEFUNCTION, array($this, 'parseBody'));
+        curl_setopt($this->curl, CURLOPT_HEADERFUNCTION, [$this, 'parseHeader']);
+        curl_setopt($this->curl, CURLOPT_WRITEFUNCTION, [$this, 'parseBody']);
 
         // Set to a blank string to make cURL include all encodings it can handle (gzip, deflate, identity) in the 'Accept-Encoding' request header and respect the 'Content-Encoding' response header
         curl_setopt($this->curl, CURLOPT_ENCODING, '');
 
-        if (!ini_get("open_basedir")) {
+        if (!ini_get('open_basedir')) {
             curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         } else {
             $this->followLocation = true;
@@ -256,9 +258,9 @@ class Connection
      */
     private function initializeRequest()
     {
-        $this->responseBody = '';
-        $this->responseHeaders = array();
-        $this->lastError = false;
+        $this->responseBody    = '';
+        $this->responseHeaders = [];
+        $this->lastError       = false;
         $this->addHeader('Accept', $this->getContentType());
 
         curl_setopt($this->curl, CURLOPT_POST, false);
@@ -277,6 +279,8 @@ class Connection
     private function handleResponse()
     {
         if (curl_errno($this->curl)) {
+            \Log::info(curl_error($this->curl));
+
             throw new NetworkError(curl_error($this->curl), curl_errno($this->curl));
         }
 
@@ -289,6 +293,7 @@ class Connection
                 throw new ClientError($body, $status);
             } else {
                 $this->lastError = $body;
+
                 return false;
             }
         } elseif ($status >= 500 && $status <= 599) {
@@ -296,6 +301,7 @@ class Connection
                 throw new ServerError($body, $status);
             } else {
                 $this->lastError = $body;
+
                 return false;
             }
         }
@@ -329,19 +335,20 @@ class Connection
 
         if ($this->getStatus() == 301 || $this->getStatus() == 302) {
             if ($this->redirectsFollowed < $this->maxRedirects) {
-                $location = $this->getHeader('Location');
+                $location  = $this->getHeader('Location');
                 $forwardTo = parse_url($location);
 
                 if (isset($forwardTo['scheme']) && isset($forwardTo['host'])) {
                     $url = $location;
                 } else {
                     $forwardFrom = parse_url(curl_getinfo($this->curl, CURLINFO_EFFECTIVE_URL));
-                    $url = $forwardFrom['scheme'] . '://' . $forwardFrom['host'] . $location;
+                    $url         = $forwardFrom['scheme'] . '://' . $forwardFrom['host'] . $location;
                 }
 
                 $this->get($url);
             } else {
-                $errorString = "Too many redirects when trying to follow location.";
+                $errorString = 'Too many redirects when trying to follow location.';
+
                 throw new NetworkError($errorString, CURLE_TOO_MANY_REDIRECTS);
             }
         } else {
@@ -491,6 +498,7 @@ class Connection
     private function parseBody($curl, $body)
     {
         $this->responseBody .= $body;
+
         return strlen($body);
     }
 
@@ -507,10 +515,12 @@ class Connection
             $this->responseStatusLine = $headers;
         } else {
             $parts = explode(': ', $headers);
+
             if (isset($parts[1])) {
                 $this->responseHeaders[$parts[0]] = trim($parts[1]);
             }
         }
+
         return strlen($headers);
     }
 
