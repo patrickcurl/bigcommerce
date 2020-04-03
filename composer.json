@@ -1,7 +1,7 @@
 {
     "name": "bigcommerce/api",
     "type": "library",
-    "description": "Enables PHP applications to communicate with the Bigcommerce API.",
+    "description": "Enables PHP applications to communicate with the Bigcommerce API. Overriden.",
     "keywords": [
         "api",
         "http",
